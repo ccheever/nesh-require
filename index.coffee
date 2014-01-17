@@ -17,6 +17,10 @@ colors = require 'colors'
 optimist = require 'optimist'
 vm = require 'vm'
 
+displayUsage = (repl) ->
+  repl.outputStream.write colors.cyan "Usage: .require <unquoted-module-name-or-path> [assign-to]\n"
+  repl.displayPrompt()
+
 exports.postStart = (context) ->
   {repl} = context
 
@@ -29,24 +33,31 @@ exports.postStart = (context) ->
   action = (m) ->
 
     if m.trim().length == 0
-      repl.outputStream.write colors.cyan "Usage: .require <module-name>\n"
-      repl.displayPrompt()
+      displayUsage(repl)
       return
 
-    vName = ""
-    capNext = false
-    for c in m
-      if c is '/'
-        vName = ""
-      else if c is '-'
-        capNext = true
-      else if c is '.'
-      else
-        if capNext
-          vName += c.toUpperCase()
+    tokens = m.split /\s+/
+    if tokens.length > 2
+      displayUsage(repl)
+      return
+    else if tokens.length == 2
+      vName = tokens[1]
+      m = tokens[0]
+    else
+      vName = ""
+      capNext = false
+      for c in m
+        if c is '/'
+          vName = ""
+        else if c is '-'
+          capNext = true
+        else if c is '.'
         else
-          vName += c
-        capNext = false
+          if capNext
+            vName += c.toUpperCase()
+          else
+            vName += c
+          capNext = false
 
     expanded = "#{ vName } = require(#{ JSON.stringify m })"
     repl.outputStream.write colors.green expanded + "\n"
