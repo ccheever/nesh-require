@@ -37,7 +37,7 @@ exports.postStart = (context) ->
       displayUsage(repl)
       return
 
-    if /[\.\/]+/.test m
+    if /^[\.\/]+$/.test m
       m = fs.realpathSync (process.cwd() + "/" + m)
 
     tokens = m.split /\s+/
