@@ -7,8 +7,8 @@ __doc__ = """Shorthand for requiring and assigning a module
   .require lodash-node/modern/objects -> objects = require('lodash-node/modern/objects')
 
   If the `require` is successful, the name of the variable that the module
-  has been assigned to will be pre-filled into the REPL as the next 
-  line of input. This behavior can be disabled with the command-line 
+  has been assigned to will be pre-filled into the REPL as the next
+  line of input. This behavior can be disabled with the command-line
   argument `--no-require-echo`.
 
   """
@@ -16,6 +16,7 @@ __doc__ = """Shorthand for requiring and assigning a module
 colors = require 'colors'
 optimist = require 'optimist'
 vm = require 'vm'
+fs = require 'fs'
 
 displayUsage = (repl) ->
   repl.outputStream.write colors.cyan "Usage: .require <unquoted-module-name-or-path> [assign-to]\n"
@@ -29,12 +30,15 @@ exports.postStart = (context) ->
       vm.runInThisContext s
     else
       vm.runInContext s, repl.context
-  
+
   action = (m) ->
 
     if m.trim().length == 0
       displayUsage(repl)
       return
+
+    if /[\.\/]+/.test m
+      m = fs.realpathSync (process.cwd() + "/" + m)
 
     tokens = m.split /\s+/
     if tokens.length > 2
